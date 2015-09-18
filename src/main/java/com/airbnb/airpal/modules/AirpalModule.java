@@ -38,8 +38,11 @@ import com.airbnb.airpal.sql.beans.TableRow;
 import com.airbnb.airpal.sql.jdbi.QueryStoreMapper;
 import com.airbnb.airpal.sql.jdbi.URIArgumentFactory;
 import com.airbnb.airpal.sql.jdbi.UUIDArgumentFactory;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -270,7 +273,10 @@ public class AirpalModule extends AbstractModule
     public AmazonS3 provideAmazonS3Client(AWSCredentials awsCredentials)
     {
         if (awsCredentials == null) {
-            return new AmazonS3Client();
+            InstanceProfileCredentialsProvider credentials = new InstanceProfileCredentialsProvider(true);
+            ClientConfiguration clientConfig = new ClientConfiguration();
+            clientConfig.setProtocol(Protocol.HTTP);
+            return new AmazonS3Client(credentials, clientConfig);
         }
 
         return new AmazonS3Client(awsCredentials);
