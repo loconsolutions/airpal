@@ -69,6 +69,13 @@ let TableSearch = React.createClass({
     return (
       <section className="flex flex-column flex-initial table-search-row panel-body">
         <div className="flex flex-column form-group">
+          <label htmlFor="tables-input">Catalog</label>
+            <SearchInputField
+              ref="catalogSelectize"
+              placeholder="Select a catalog"
+              selectizeOptions={this.catalogSelectizeOptions} />
+        </div>
+        <div className="flex flex-column form-group">
           <label htmlFor="tables-input">Tables</label>
           <SearchInputField
             ref="tableSelectize"
@@ -89,6 +96,47 @@ let TableSearch = React.createClass({
   },
 
   /* - Selectize options --------------------------------------------------- */
+
+  catalogSelectizeOptions() {
+    return _.extend({}, commonSelectizeOptions, {
+      preload: true,
+
+      render: {
+        option: this._renderCatalogOptions
+      },
+
+      valueField: 'catalog',
+      labelField: 'catalog',
+
+      sortField: [{
+          field: 'catalog',
+          direction: 'asc'
+        }],
+
+      searchField: ['catalog'],
+
+      plugins: {
+        'remove_button': {},
+
+        'header': {
+          headers: ['Catalog']
+        }
+      },
+
+      load(query, callback) {
+        $.ajax({
+          url: './api/catalog',
+          type: 'GET',
+          error() { callback(); },
+
+          success(res) {
+            callback(res);
+          }
+        });
+      },
+    });
+  },
+
   tableSelectizeOptions() {
     return _.extend({}, commonSelectizeOptions, {
       preload: true,
@@ -159,6 +207,14 @@ let TableSearch = React.createClass({
       }
     });
   },
+
+  _renderCatalogOptions(item, escape) {
+      return (
+        '<div class="row">' +
+          '<div class="col-sm-11 col-name"><span>' + escape(item.catalog) + '</span></div>' +
+        '</div>'
+      );
+    },
 
   _renderTableOptions(item, escape) {
     return (
