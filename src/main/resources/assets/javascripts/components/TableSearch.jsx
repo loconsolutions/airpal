@@ -2,6 +2,8 @@ import React from 'react';
 import SearchInputField from './SearchInputField';
 import TableActions from '../actions/TableActions';
 import TableStore from '../stores/TableStore';
+import CatalogStore from '../stores/CatalogStore';
+import CatalogActions from '../actions/CatalogActions';
 import _ from 'lodash';
 import moment from 'moment';
 
@@ -22,8 +24,9 @@ function getActiveItemName(selectize) {
 // State actions
 function getStateFromStore() {
   return {
-    table: TableStore.getActiveTable()
-  };
+    table: TableStore.getActiveTable(),
+    tables: TableStore.getAll()
+   }
 }
 
 function highlightOnlyOption(selectize, item) {
@@ -69,6 +72,13 @@ let TableSearch = React.createClass({
     return (
       <section className="flex flex-column flex-initial table-search-row panel-body">
         <div className="flex flex-column form-group">
+          <label htmlFor="tables-input">Catalog</label>
+            <SearchInputField
+              ref="catalogSelectize"
+              placeholder="Select a catalog"
+              selectizeOptions={this.catalogSelectizeOptions} />
+        </div>
+        <div className="flex flex-column form-group">
           <label htmlFor="tables-input">Tables</label>
           <SearchInputField
             ref="tableSelectize"
@@ -89,9 +99,95 @@ let TableSearch = React.createClass({
   },
 
   /* - Selectize options --------------------------------------------------- */
-  tableSelectizeOptions() {
+
+  catalogSelectizeOptions() {
+    const self = this;
     return _.extend({}, commonSelectizeOptions, {
       preload: true,
+
+      render: {
+        option: this._renderCatalogOptions
+      },
+
+      valueField: 'catalog',
+      labelField: 'catalog',
+
+      sortField: [{
+          field: 'catalog',
+          direction: 'asc'
+        }],
+
+      searchField: ['catalog'],
+
+      plugins: {
+        'remove_button': {},
+
+        'header': {
+          headers: ['Catalog']
+        }
+      },
+
+      load(query, callback) {
+        $.ajax({
+          url: './api/catalog',
+          type: 'GET',
+          error() { callback(); },
+
+          success(res) {
+            callback(res);
+          }
+        });
+      },
+
+      onChange() {
+        self.setState({
+            tables: TableStore.getState()
+        });
+        this.close();
+      },
+
+      onItemAdd(catalog, $element) {
+        CatalogActions.addCatalog({
+          name: catalog
+        });
+        highlightOnlyOption(this, $element);
+      },
+
+      onItemRemove(catalog) {
+        CatalogActions.removeCatalog(catalog);
+        highlightOnlyOption(this);
+      },
+
+      onItemSelected(element) {
+        let $el = $(element);
+        CatalogActions.selectCatalog($(element).data('value'));
+      },
+
+      onOptionActive($activeOption) {
+        let itemName = getActiveItemName(this);
+
+        if ($activeOption == null) {
+          CatalogActions.unselectCatalog(itemName)
+        } else {
+          if (!CatalogStore.containsCatalog(itemName)) {
+            CatalogActions.unselectCatalog(itemName);
+          } else {
+            CatalogActions.selectCatalog(itemName);
+          }
+        }
+      }
+    });
+  },
+
+  tableSelectizeOptions() {
+    let tables = [];
+    const self = this;
+    if (!_.isEmpty(this.state.tables)) {
+      tables = this.state.tables;
+    }
+
+    return _.extend({}, commonSelectizeOptions, {
+      preload: false,
 
       render: {
         option: this._renderTableOptions
@@ -117,7 +213,7 @@ let TableSearch = React.createClass({
 
       load(query, callback) {
         $.ajax({
-          url: './api/table',
+          url: './api/table?catalog=' + CatalogStore.getActiveCatalog().name,
           type: 'GET',
           error() { callback(); },
 
@@ -129,7 +225,8 @@ let TableSearch = React.createClass({
 
       onItemAdd(table, $element) {
         TableActions.addTable({
-          name: table
+          name: table,
+          catalog: CatalogStore.getActiveCatalog().name
         });
         highlightOnlyOption(this, $element);
       },
@@ -159,6 +256,14 @@ let TableSearch = React.createClass({
       }
     });
   },
+
+  _renderCatalogOptions(item, escape) {
+      return (
+        '<div class="row">' +
+          '<div class="col-sm-11 col-name"><span>' + escape(item.catalog) + '</span></div>' +
+        '</div>'
+      );
+    },
 
   _renderTableOptions(item, escape) {
     return (

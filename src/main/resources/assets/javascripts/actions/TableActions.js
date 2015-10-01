@@ -1,6 +1,6 @@
 import alt from '../alt';
 import TableApiUtils from '../utils/TableApiUtils';
-import logError from '../utils/logError'
+import logError from '../utils/logError';
 
 class TableActions {
   constructor() {
@@ -47,6 +47,10 @@ class TableActions {
 
   receivedPartitionData({table, partition, data}) {
     this.dispatch({ table, partition, data });
+  }
+
+  receivedTables(tables) {
+    this.dispatch({ tables });
   }
 }
 
