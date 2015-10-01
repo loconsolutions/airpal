@@ -57,9 +57,7 @@ public class SchemaCache
                     {
                         return queryMetadata(format(
                                 "SELECT table_catalog, table_schema, table_name " +
-                                        "FROM %s.information_schema.tables " +
-                                        "WHERE table_catalog = '%s'",
-                                catalogName, catalogName));
+                                        "FROM %s.information_schema.tables ", catalogName));
                     }
                 };
 
