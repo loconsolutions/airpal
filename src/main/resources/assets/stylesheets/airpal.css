@@ -118,6 +118,10 @@ body {
   margin-left: 20px;
 }
 
+.header .logout {
+  margin-left: 20px;
+}
+
 .header .glyphicon {
   margin-right: 5px;
 }

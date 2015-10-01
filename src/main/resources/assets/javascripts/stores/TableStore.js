@@ -15,7 +15,8 @@ class TableStore {
       onFetchTables: TableActions.FETCH_TABLES,
       onSetTableColumnWidth: TableActions.SET_TABLE_COLUMN_WIDTH,
       onReceivedTableData: TableActions.RECEIVED_TABLE_DATA,
-      onReceivedPartitionData: TableActions.RECEIVED_PARTITION_DATA
+      onReceivedPartitionData: TableActions.RECEIVED_PARTITION_DATA,
+      onReceivedTables: TableActions.RECEIVED_TABLES
     });
 
     this.exportPublicMethods({
@@ -239,6 +240,10 @@ class TableStore {
   }
 
   onFetchTables(tables) {
+    this.tables = tables;
+  }
+
+  onReceivedTables(tables) {
     this.tables = tables;
   }
 

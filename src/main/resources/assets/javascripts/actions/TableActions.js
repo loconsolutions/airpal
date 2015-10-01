@@ -16,7 +16,6 @@ class TableActions {
 
   fetchTable(table) {
     // Fetch the data from the new table
-    debugger
     TableApiUtils.fetchTableData(table).then(
       ({table, columns, data, partitions}) => {
         this.actions.receivedTableData(table, columns, data, partitions);
@@ -43,7 +42,6 @@ class TableActions {
   }
 
   receivedTableData(table, columns, data, partitions) {
-    debugger
     this.dispatch({ table, columns, data, partitions });
   }
 
@@ -52,7 +50,7 @@ class TableActions {
   }
 
   receivedTables(tables) {
-    this.dispatch(tables);
+    this.dispatch({ tables });
   }
 }
 
