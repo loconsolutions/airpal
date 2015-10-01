@@ -1,6 +1,6 @@
 import alt from '../alt';
 import TableApiUtils from '../utils/TableApiUtils';
-import logError from '../utils/logError'
+import logError from '../utils/logError';
 
 class TableActions {
   constructor() {
@@ -16,6 +16,7 @@ class TableActions {
 
   fetchTable(table) {
     // Fetch the data from the new table
+    debugger
     TableApiUtils.fetchTableData(table).then(
       ({table, columns, data, partitions}) => {
         this.actions.receivedTableData(table, columns, data, partitions);
@@ -42,11 +43,16 @@ class TableActions {
   }
 
   receivedTableData(table, columns, data, partitions) {
+    debugger
     this.dispatch({ table, columns, data, partitions });
   }
 
   receivedPartitionData({table, partition, data}) {
     this.dispatch({ table, partition, data });
+  }
+
+  receivedTables(tables) {
+    this.dispatch(tables);
   }
 }
 

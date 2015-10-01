@@ -1,5 +1,5 @@
 import FQN from '../utils/fqn';
-import TableActions from '../actions/CatalogActions';
+import CatalogActions from '../actions/CatalogActions';
 import _ from 'lodash';
 import alt from '../alt';
 
@@ -10,13 +10,14 @@ class CatalogStore {
       onRemoveCatalog: CatalogActions.REMOVE_CATALOG,
       onSelectCatalog: CatalogActions.SELECT_CATALOG,
       onUnselectCatalog: CatalogActions.UNSELECT_CATALOG,
-      onFetchCatalog: CatalogActions.FETCH_CATALOG,
+      onFetchCatalogs: CatalogActions.FETCH_CATALOGS
     });
 
     this.exportPublicMethods({
       getActiveCatalog: this.getActiveCatalog,
       getAll: this.getAll,
-      containsCatalog: this.containsCatalog
+      containsCatalog: this.containsCatalog,
+      getSelectedCatalog: this.getSelectedCatalog,
     });
 
     this.catalogs = [];
@@ -32,7 +33,7 @@ class CatalogStore {
   }
 
   unmarkActiveCatalogs() {
-    this.catalogs.forEach((table) => {
+    this.catalogs.forEach((catalog) => {
       if (catalog.active) {
         // Change the active state of the table
         catalog.active = false;
@@ -64,7 +65,6 @@ class CatalogStore {
     if (!catalog) {
       return;
     }
-
     catalog.active = true;
     this.activeCatalog = catalog;
   }
@@ -84,7 +84,8 @@ class CatalogStore {
     });
 
     // Add the table to the collection
-    this.tables.push(catalog);
+    this.catalogs.length = 0;
+    this.catalogs.push(catalog);
 
     CatalogActions.fetchCatalog(catalog);
   }
@@ -103,7 +104,6 @@ class CatalogStore {
 
     // Check or we can make an other table active
     if (this.catalogs.length > 0) {
-      catalog = _.first(this.catalogs);
       this.markActive(catalog.name);
     }
   }
@@ -126,6 +126,10 @@ class CatalogStore {
 
   getActiveCatalog() {
     return this.getState().activeCatalog;
+  }
+
+  getSelectedCatalog() {
+    return _.first(this.getActiveCatalog());
   }
 
   containsCatalog(name) {

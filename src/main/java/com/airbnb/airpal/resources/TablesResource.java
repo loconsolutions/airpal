@@ -96,12 +96,14 @@ public class TablesResource
     @Path("{schema}/{tableName}/columns")
     public Response getTableColumns(
             @Auth AirpalUser user,
+            @QueryParam("catalog") Optional<String> catalogOptional,
             @PathParam("schema") String schema,
             @PathParam("tableName") String tableName)
             throws ExecutionException
     {
-        if (isAuthorizedRead(user, defaultCatalog, schema, tableName)) {
-            return Response.ok(columnCache.getColumns(schema, tableName)).build();
+        final String catalog = catalogOptional.or(defaultCatalog);
+        if (isAuthorizedRead(user, catalog, schema, tableName)) {
+            return Response.ok(columnCache.getColumns(catalog, schema, tableName)).build();
         }
         else {
             return Response.status(Response.Status.FORBIDDEN).build();
@@ -151,7 +153,7 @@ public class TablesResource
 
         if (isAuthorizedRead(user, defaultCatalog, schema, tableName)) {
             return Response.ok(previewTableCache.getPreview(
-                    Optional.fromNullable(connectorId).or("hive"),
+                    Optional.fromNullable(connectorId).or("housing_production"),
                     schema,
                     tableName,
                     partition,

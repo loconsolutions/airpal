@@ -2,6 +2,8 @@ import React from 'react';
 import SearchInputField from './SearchInputField';
 import TableActions from '../actions/TableActions';
 import TableStore from '../stores/TableStore';
+import CatalogStore from '../stores/CatalogStore';
+import CatalogActions from '../actions/CatalogActions';
 import _ from 'lodash';
 import moment from 'moment';
 
@@ -22,8 +24,9 @@ function getActiveItemName(selectize) {
 // State actions
 function getStateFromStore() {
   return {
-    table: TableStore.getActiveTable()
-  };
+    table: TableStore.getActiveTable(),
+    tables: TableStore.getAll()
+   }
 }
 
 function highlightOnlyOption(selectize, item) {
@@ -98,6 +101,7 @@ let TableSearch = React.createClass({
   /* - Selectize options --------------------------------------------------- */
 
   catalogSelectizeOptions() {
+    const self = this;
     return _.extend({}, commonSelectizeOptions, {
       preload: true,
 
@@ -134,12 +138,56 @@ let TableSearch = React.createClass({
           }
         });
       },
+
+      onChange() {
+        self.setState({
+            tables: TableStore.getState()
+        });
+        this.close();
+      },
+
+      onItemAdd(catalog, $element) {
+        CatalogActions.addCatalog({
+          name: catalog
+        });
+        highlightOnlyOption(this, $element);
+      },
+
+      onItemRemove(catalog) {
+        CatalogActions.removeCatalog(catalog);
+        highlightOnlyOption(this);
+      },
+
+      onItemSelected(element) {
+        let $el = $(element);
+        CatalogActions.selectCatalog($(element).data('value'));
+      },
+
+      onOptionActive($activeOption) {
+        let itemName = getActiveItemName(this);
+
+        if ($activeOption == null) {
+          CatalogActions.unselectCatalog(itemName)
+        } else {
+          if (!CatalogStore.containsCatalog(itemName)) {
+            CatalogActions.unselectCatalog(itemName);
+          } else {
+            CatalogActions.selectCatalog(itemName);
+          }
+        }
+      }
     });
   },
 
   tableSelectizeOptions() {
+    let tables = [];
+    const self = this;
+    if (!_.isEmpty(this.state.tables)) {
+      tables = this.state.tables;
+    }
+
     return _.extend({}, commonSelectizeOptions, {
-      preload: true,
+      preload: false,
 
       render: {
         option: this._renderTableOptions
@@ -165,7 +213,7 @@ let TableSearch = React.createClass({
 
       load(query, callback) {
         $.ajax({
-          url: './api/table',
+          url: './api/table?catalog=' + CatalogStore.getActiveCatalog().name,
           type: 'GET',
           error() { callback(); },
 
@@ -177,7 +225,8 @@ let TableSearch = React.createClass({
 
       onItemAdd(table, $element) {
         TableActions.addTable({
-          name: table
+          name: table,
+          catalog: CatalogStore.getActiveCatalog().name
         });
         highlightOnlyOption(this, $element);
       },

@@ -1,9 +1,9 @@
 import xhr from './xhr';
 
-const fetchColumData = (table) => xhr(`${table.url}/columns`);
+const fetchColumData = (table) => xhr(`${table.url}/columns?catalog=${table.catalog}`);
 
 const fetchPreviewData = (table, partition = {}) => {
-  let url = `${table.url}/preview`;
+  let url = `${table.url}/preview?catalog=${table.catalog}`;
   if (partition.name && partition.value) {
     url += '?' +
       `partitionName=${partition.name}&` +
@@ -13,7 +13,7 @@ const fetchPreviewData = (table, partition = {}) => {
   return xhr(url);
 };
 
-const fetchPartitionData = (table) => xhr(`${table.url}/partitions`);
+const fetchPartitionData = (table) => xhr(`${table.url}/partitions?catalog=${table.catalog}`);
 
 export default {
   fetchTableData(table) {
