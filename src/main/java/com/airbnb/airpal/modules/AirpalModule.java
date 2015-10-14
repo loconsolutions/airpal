@@ -21,6 +21,7 @@ import com.airbnb.airpal.core.store.usage.SQLUsageStore;
 import com.airbnb.airpal.core.store.usage.UsageStore;
 import com.airbnb.airpal.presto.ClientSessionFactory;
 import com.airbnb.airpal.presto.QueryInfoClient;
+import com.airbnb.airpal.presto.metadata.CatalogCache;
 import com.airbnb.airpal.presto.metadata.ColumnCache;
 import com.airbnb.airpal.presto.metadata.PreviewTableCache;
 import com.airbnb.airpal.presto.metadata.SchemaCache;
@@ -40,6 +41,7 @@ import com.airbnb.airpal.sql.jdbi.URIArgumentFactory;
 import com.airbnb.airpal.sql.jdbi.UUIDArgumentFactory;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -195,6 +197,17 @@ public class AirpalModule extends AbstractModule
 
     @Singleton
     @Provides
+    public CatalogCache provideCatalogCache(QueryRunnerFactory queryRunnerFactory,
+                                            @Named("presto") ExecutorService executorService)
+    {
+        final CatalogCache cache = new CatalogCache(queryRunnerFactory, executorService);
+        cache.populateCache(config.getPrestoCatalog());
+
+        return cache;
+    }
+
+    @Singleton
+    @Provides
     public ColumnCache provideColumnCache(QueryRunnerFactory queryRunnerFactory,
                                           @Named("presto") ExecutorService executorService)
     {
@@ -270,7 +283,8 @@ public class AirpalModule extends AbstractModule
     public AmazonS3 provideAmazonS3Client(AWSCredentials awsCredentials)
     {
         if (awsCredentials == null) {
-            return new AmazonS3Client();
+            InstanceProfileCredentialsProvider iamCredentials = new InstanceProfileCredentialsProvider();
+            return new AmazonS3Client(iamCredentials);
         }
 
         return new AmazonS3Client(awsCredentials);
